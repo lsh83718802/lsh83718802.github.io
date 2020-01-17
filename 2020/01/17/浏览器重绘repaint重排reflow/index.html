@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JS,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="网页生成过程：1.HTML被HTML解析器解析成DOM 树2.css则被css解析器解析成CSSOM 树3.结合DOM树和CSSOM树，生成一棵渲染树(Render Tree)4.生成布局（flow），即将所有渲染树的所有节点进行平面合成5.将布局绘制（paint）在屏幕上">
+<meta name="keywords" content="JS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器重绘repaint重排reflow">
+<meta property="og:url" content="http://yoursite.com/2020/01/17/浏览器重绘repaint重排reflow/index.html">
+<meta property="og:site_name" content="鄙人梁百万">
+<meta property="og:description" content="网页生成过程：1.HTML被HTML解析器解析成DOM 树2.css则被css解析器解析成CSSOM 树3.结合DOM树和CSSOM树，生成一棵渲染树(Render Tree)4.生成布局（flow），即将所有渲染树的所有节点进行平面合成5.将布局绘制（paint）在屏幕上">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/paint.png">
+<meta property="og:image" content="http://yoursite.com/images/reflow.png">
+<meta property="og:image" content="http://yoursite.com/images/repaint.png">
+<meta property="og:updated_time" content="2020-01-17T05:52:45.066Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浏览器重绘repaint重排reflow">
+<meta name="twitter:description" content="网页生成过程：1.HTML被HTML解析器解析成DOM 树2.css则被css解析器解析成CSSOM 树3.结合DOM树和CSSOM树，生成一棵渲染树(Render Tree)4.生成布局（flow），即将所有渲染树的所有节点进行平面合成5.将布局绘制（paint）在屏幕上">
+<meta name="twitter:image" content="http://yoursite.com/images/paint.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/01/17/浏览器重绘repaint重排reflow/">
+
+
+
+
+
+  <title>浏览器重绘repaint重排reflow | 鄙人梁百万</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">鄙人梁百万</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/17/浏览器重绘repaint重排reflow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="梁百万">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="鄙人梁百万">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">浏览器重绘repaint重排reflow</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-01-17T11:03:55+08:00">
+                2020-01-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="网页生成过程："><a href="#网页生成过程：" class="headerlink" title="网页生成过程："></a>网页生成过程：</h2><p>1.HTML被HTML解析器解析成DOM 树<br>2.css则被css解析器解析成CSSOM 树<br>3.结合DOM树和CSSOM树，生成一棵渲染树(Render Tree)<br>4.生成布局（flow），即将所有渲染树的所有节点进行平面合成<br>5.将布局绘制（paint）在屏幕上</p>
+<a id="more"></a>
+
+<p>第四步和第五步是最耗时的部分，这两步合起来，就是我们通常所说的渲染。</p>
+<p>网上找了一张图片，我加了注释会更直观一些</p>
+<p><img src="/images/paint.png" alt></p>
+<h3 id="渲染："><a href="#渲染：" class="headerlink" title="渲染："></a>渲染：</h3><p><strong>网页生成的时候，至少会渲染一次</strong><br><strong>在用户访问的过程中，还会不断重新渲染</strong><br><strong>重新渲染需要重复之前的第四步(重新生成布局)+第五步(重新绘制)或者只有第五个步(重新绘制)</strong></p>
+<h4 id="重排比重绘大："><a href="#重排比重绘大：" class="headerlink" title="重排比重绘大："></a>重排比重绘大：</h4><p>大，在这个语境里的意思是：谁能影响谁？</p>
+<ul>
+<li>重绘：某些元素的外观被改变，例如：元素的填充颜色</li>
+<li>重排：重新生成布局，重新排列元素。</li>
+</ul>
+<p><strong>单单改变元素的外观，肯定不会引起网页重新生成布局，但当浏览器完成重排之后，将会重新绘制受到此次重排影响的部分</strong></p>
+<p>也就是说：<strong>“重绘”不一定会出现”重排”，”重排”必然会出现”重绘”</strong></p>
+<h2 id="重排-reflow-："><a href="#重排-reflow-：" class="headerlink" title="重排(reflow)："></a>重排(reflow)：</h2><h4 id="概念："><a href="#概念：" class="headerlink" title="概念："></a>概念：</h4><p>当DOM的变化影响了元素的几何信息(DOM对象的位置和尺寸大小)，浏览器需要重新计算元素的几何属性，将其安放在界面中的正确位置，这个过程叫做重排。</p>
+<h4 id="常见引起重排属性和方法"><a href="#常见引起重排属性和方法" class="headerlink" title="常见引起重排属性和方法:"></a>常见引起重排属性和方法:</h4><p><strong>任何会改变元素几何信息(元素的位置和尺寸大小)的操作，都会触发重排</strong><br>下面列一些栗子：</p>
+<ul>
+<li>添加或者删除可见的DOM元素；</li>
+<li>元素尺寸改变——边距、填充、边框、宽度和高度</li>
+<li>内容变化，比如用户在input框中输入文字</li>
+<li>浏览器窗口尺寸改变——resize事件发生时</li>
+<li>计算 offsetWidth 和 offsetHeight 属性</li>
+<li>设置 style 属性的值</li>
+</ul>
+<p><img src="/images/reflow.png" alt></p>
+<h4 id="重排影响的范围："><a href="#重排影响的范围：" class="headerlink" title="重排影响的范围："></a>重排影响的范围：</h4><p>由于浏览器渲染界面是基于流失布局模型的，所以触发重排时会对周围DOM重新排列，影响的范围有两种：</p>
+<ul>
+<li>全局范围：从根节点html开始对整个渲染树进行重新布局。</li>
+<li>局部范围：对渲染树的某部分或某一个渲染对象进行重新布局</li>
+</ul>
+<h5 id="全局范围重排："><a href="#全局范围重排：" class="headerlink" title="全局范围重排："></a>全局范围重排：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;body&gt;</span><br><span class="line">  &lt;div class=&quot;hello&quot;&gt;</span><br><span class="line">    &lt;h4&gt;hello&lt;/h4&gt;</span><br><span class="line">    &lt;p&gt;&lt;strong&gt;Name:&lt;/strong&gt;BDing&lt;/p&gt;</span><br><span class="line">    &lt;h5&gt;male&lt;/h5&gt;</span><br><span class="line">    &lt;ol&gt;</span><br><span class="line">      &lt;li&gt;coding&lt;/li&gt;</span><br><span class="line">      &lt;li&gt;loving&lt;/li&gt;</span><br><span class="line">    &lt;/ol&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/body&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当p节点上发生reflow时，hello和body也会重新渲染，甚至h5和ol都会收到影响</p>
+<h5 id="局部范围重排："><a href="#局部范围重排：" class="headerlink" title="局部范围重排："></a>局部范围重排：</h5><p>用局部布局来解释这种现象：把一个dom的宽高之类的几何信息定死，然后在dom内部触发重排，就只会重新渲染该dom内部的元素，而不会影响到外界。</p>
+<h4 id="尽可能的减少重排的次数、重排范围："><a href="#尽可能的减少重排的次数、重排范围：" class="headerlink" title="尽可能的减少重排的次数、重排范围："></a>尽可能的减少重排的次数、重排范围：</h4><p>重排需要更新渲染树,性能花销非常大:<br>它们的代价是高昂的，会破坏用户体验，并且让UI展示非常迟缓，我们需要尽可能的减少触发重排的次数。<br>重排的性能花销跟渲染树有多少节点需要重新构建有关系：<br>所以我们应该尽量以局部布局的形式组织html结构，尽可能小的影响重排的范围。<br>而不是像全局范围的示例代码一样一溜的堆砌标签，随便一个元素触发重排都会导致全局范围的重排。</p>
+<h2 id="重绘-repaint"><a href="#重绘-repaint" class="headerlink" title="重绘(repaint):"></a>重绘(repaint):</h2><h4 id="概念：-1"><a href="#概念：-1" class="headerlink" title="概念："></a>概念：</h4><p>当一个元素的外观发生改变，但没有改变布局,重新把元素外观绘制出来的过程，叫做重绘。</p>
+<h4 id="常见的引起重绘的属性"><a href="#常见的引起重绘的属性" class="headerlink" title="常见的引起重绘的属性:"></a>常见的引起重绘的属性:</h4><p><img src="/images/repaint.png" alt></p>
+<h2 id="浏览器的渲染队列："><a href="#浏览器的渲染队列：" class="headerlink" title="浏览器的渲染队列："></a>浏览器的渲染队列：</h2><p>思考以下代码将会触发几次渲染？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">div.style.left = &apos;10px&apos;;</span><br><span class="line">div.style.top = &apos;10px&apos;;</span><br><span class="line">div.style.width = &apos;20px&apos;;</span><br><span class="line">div.style.height = &apos;20px&apos;;</span><br></pre></td></tr></table></figure>
+
+<p>根据我们上文的定义，这段代码理论上会触发4次重排+重绘，因为每一次都改变了元素的几何属性，实际上最后只触发了一次重排，这都得益于浏览器的<strong>渲染队列机制：</strong></p>
+<p>当我们修改了元素的几何属性，导致浏览器触发重排或重绘时。它会把该操作放进渲染队列，等到队列中的操作到了<strong>一定的数量或者到了一定的时间间隔时</strong>，浏览器就会批量执行这些操作。</p>
+<h3 id="强制刷新队列"><a href="#强制刷新队列" class="headerlink" title="强制刷新队列:"></a>强制刷新队列:</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">div.style.left = &apos;10px&apos;;</span><br><span class="line">console.log(div.offsetLeft);</span><br><span class="line">div.style.top = &apos;10px&apos;;</span><br><span class="line">console.log(div.offsetTop);</span><br><span class="line">div.style.width = &apos;20px&apos;;</span><br><span class="line">console.log(div.offsetWidth);</span><br><span class="line">div.style.height = &apos;20px&apos;;</span><br><span class="line">console.log(div.offsetHeight);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码会触发4次重排+重绘，因为在console中你请求的这几个样式信息，无论何时浏览器都会立即执行渲染队列的任务，即使该值与你操作中修改的值没关联。</p>
+<p><strong>因为队列中，可能会有影响到这些值的操作，为了给我们最精确的值，浏览器会立即重排+重绘。</strong></p>
+<p><strong>因为队列中，可能会有影响到这些值的操作，为了给我们最精确的值，浏览器会立即重排+重绘。</strong></p>
+<ol>
+<li>offsetTop, offsetLeft, offsetWidth, offsetHeight</li>
+<li>scrollTop, scrollLeft, scrollWidth, scrollHeight</li>
+<li>clientTop, clientLeft, clientWidth, clientHeight</li>
+<li>getComputedStyle(), 或者 IE的 currentStyle</li>
+</ol>
+<p>我们在开发中，应该谨慎的使用这些style请求，注意上下文关系,避免一行代码一个重排，这对性能是个巨大的消耗</p>
+<h3 id="重排优化建议"><a href="#重排优化建议" class="headerlink" title="重排优化建议"></a>重排优化建议</h3><p>就像上文提到的我们要尽可能的减少重排次数、重排范围，这样说很泛，下面是一些行之有效的建议，大家可以参考一下。</p>
+<h4 id="1-分离读写操作"><a href="#1-分离读写操作" class="headerlink" title="1.分离读写操作"></a>1.分离读写操作</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">div.style.left = &apos;10px&apos;;</span><br><span class="line">div.style.top = &apos;10px&apos;;</span><br><span class="line">div.style.width = &apos;20px&apos;;</span><br><span class="line">div.style.height = &apos;20px&apos;;</span><br><span class="line">console.log(div.offsetLeft);</span><br><span class="line">console.log(div.offsetTop);</span><br><span class="line">console.log(div.offsetWidth);</span><br><span class="line">console.log(div.offsetHeight);</span><br></pre></td></tr></table></figure>
+
+<p>还是上面触发4次重排+重绘的代码，这次只触发了一次重排：</p>
+<p>在第一个console的时候，浏览器把之前上面四个写操作的渲染队列都给清空了。剩下的console，因为渲染队列本来就是空的，所以并没有触发重排，仅仅拿值而已。</p>
+<h4 id="2-样式集中改变"><a href="#2-样式集中改变" class="headerlink" title="2. 样式集中改变"></a>2. 样式集中改变</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">div.style.left = &apos;10px&apos;;</span><br><span class="line">div.style.top = &apos;10px&apos;;</span><br><span class="line">div.style.width = &apos;20px&apos;;</span><br><span class="line">div.style.height = &apos;20px&apos;;</span><br></pre></td></tr></table></figure>
+
+<p>虽然现在大部分浏览器有渲染队列优化，不排除有些浏览器以及老版本的浏览器效率仍然低下：</p>
+<p>建议通过改变class或者csstext属性集中改变样式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// bad</span><br><span class="line">var left = 10;</span><br><span class="line">var top = 10;</span><br><span class="line">el.style.left = left + &quot;px&quot;;</span><br><span class="line">el.style.top  = top  + &quot;px&quot;;</span><br><span class="line">// good </span><br><span class="line">el.className += &quot; theclassname&quot;;</span><br><span class="line">// good</span><br><span class="line">el.style.cssText += &quot;; left: &quot; + left + &quot;px; top: &quot; + top + &quot;px;&quot;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-缓存布局信息"><a href="#3-缓存布局信息" class="headerlink" title="3. 缓存布局信息"></a>3. 缓存布局信息</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// bad 强制刷新 触发两次重排</span><br><span class="line">div.style.left = div.offsetLeft + 1 + &apos;px&apos;;</span><br><span class="line">div.style.top = div.offsetTop + 1 + &apos;px&apos;;</span><br><span class="line"></span><br><span class="line">// good 缓存布局信息 相当于读写分离</span><br><span class="line">var curLeft = div.offsetLeft;</span><br><span class="line">var curTop = div.offsetTop;</span><br><span class="line">div.style.left = curLeft + 1 + &apos;px&apos;;</span><br><span class="line">div.style.top = curTop + 1 + &apos;px&apos;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-离线改变dom"><a href="#4-离线改变dom" class="headerlink" title="4. 离线改变dom"></a>4. 离线改变dom</h4><ul>
+<li>隐藏要操作的dom</li>
+</ul>
+<p>在要操作dom之前，通过display隐藏dom，当操作完成之后，才将元素的display属性为可见，因为不可见的元素不会触发重排和重绘。</p>
+<ul>
+<li><p>通过使用 <strong>DocumentFragment</strong>创建一个dom碎片,在它上面批量操作dom，操作完成之后，再添加到文档中，这样只会触发一次重排。</p>
+</li>
+<li><p>复制节点，在副本上工作，然后替换它！</p>
+</li>
+</ul>
+<h4 id="5-position属性为absolute或fixed"><a href="#5-position属性为absolute或fixed" class="headerlink" title="5. position属性为absolute或fixed"></a>5. position属性为absolute或fixed</h4><p>position属性为absolute或fixed的元素，重排开销比较小，不用考虑它对其他元素的影响</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JS/" rel="tag"># JS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/06/函数防抖和函数节流/" rel="next" title="函数防抖和函数节流">
+                <i class="fa fa-chevron-left"></i> 函数防抖和函数节流
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">梁百万</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#网页生成过程："><span class="nav-number">1.</span> <span class="nav-text">网页生成过程：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#渲染："><span class="nav-number">1.1.</span> <span class="nav-text">渲染：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#重排比重绘大："><span class="nav-number">1.1.1.</span> <span class="nav-text">重排比重绘大：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重排-reflow-："><span class="nav-number">2.</span> <span class="nav-text">重排(reflow)：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概念："><span class="nav-number">2.0.1.</span> <span class="nav-text">概念：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见引起重排属性和方法"><span class="nav-number">2.0.2.</span> <span class="nav-text">常见引起重排属性和方法:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重排影响的范围："><span class="nav-number">2.0.3.</span> <span class="nav-text">重排影响的范围：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#全局范围重排："><span class="nav-number">2.0.3.1.</span> <span class="nav-text">全局范围重排：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#局部范围重排："><span class="nav-number">2.0.3.2.</span> <span class="nav-text">局部范围重排：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#尽可能的减少重排的次数、重排范围："><span class="nav-number">2.0.4.</span> <span class="nav-text">尽可能的减少重排的次数、重排范围：</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#重绘-repaint"><span class="nav-number">3.</span> <span class="nav-text">重绘(repaint):</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#概念：-1"><span class="nav-number">3.0.1.</span> <span class="nav-text">概念：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的引起重绘的属性"><span class="nav-number">3.0.2.</span> <span class="nav-text">常见的引起重绘的属性:</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#浏览器的渲染队列："><span class="nav-number">4.</span> <span class="nav-text">浏览器的渲染队列：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#强制刷新队列"><span class="nav-number">4.1.</span> <span class="nav-text">强制刷新队列:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重排优化建议"><span class="nav-number">4.2.</span> <span class="nav-text">重排优化建议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-分离读写操作"><span class="nav-number">4.2.1.</span> <span class="nav-text">1.分离读写操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-样式集中改变"><span class="nav-number">4.2.2.</span> <span class="nav-text">2. 样式集中改变</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-缓存布局信息"><span class="nav-number">4.2.3.</span> <span class="nav-text">3. 缓存布局信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-离线改变dom"><span class="nav-number">4.2.4.</span> <span class="nav-text">4. 离线改变dom</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-position属性为absolute或fixed"><span class="nav-number">4.2.5.</span> <span class="nav-text">5. position属性为absolute或fixed</span></a></li></ol></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">梁百万</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
